@@ -18,7 +18,7 @@ int baseSpeed = 255;
 #define SENSOR3 A2
 #define SENSOR2 A1
 #define SENSOR1 A0
-#define LED_CTRL 6  
+#define LED_CTRL 6
 
 // TB6612FNG pin assignments
 #define PWMA 3
@@ -29,11 +29,13 @@ int baseSpeed = 255;
 #define BIN2 10
 
 // Motor setup
-Motor leftMotor = Motor(AIN1, AIN2, PWMA, 1, 255);
-Motor rightMotor = Motor(BIN2, BIN1, PWMB, 1, 255);
+Motor leftMotor = Motor(AIN2, AIN1, PWMA, 1, );
+Motor rightMotor = Motor(BIN1, BIN2, PWMB, 1, 255);
+
+int BASE_PWM = 160;
 
 // Sensor setup
-const uint8_t sensorArray[8] = {SENSOR8, SENSOR7,  SENSOR6,  SENSOR5, SENSOR4, SENSOR3, SENSOR2, SENSOR1};
+const uint8_t sensorArray[8] = { SENSOR8, SENSOR7, SENSOR6, SENSOR5, SENSOR4, SENSOR3, SENSOR2, SENSOR1 };
 uint16_t sensorValues[8];
 QTRSensors qtr;
 int SensorCount = 8;
@@ -59,48 +61,47 @@ void loop() {
 }
 
 //======================================vvvLINE FOLLOWING FUNCTIONSvvv======================================//
-void followLine1 () {
-  int indexDarkest = 0; // Initial index of sensor detecting darkest line
-  
+void followLine1() {
+  int indexDarkest = 0;  // Initial index of sensor detecting darkest line
+
   // Keeping track of the sensor with darkest reading
-  for (int i = 0 ; i < 8 ; i ++) {
-     if (sensorValues[i] > sensorValues[indexDarkest]) 
-       indexDarkest = i;
+  for (int i = 0; i < 8; i++) {
+    if (sensorValues[i] > sensorValues[indexDarkest])
+      indexDarkest = i;
   }
 
-  // Line following part
   if (sensorValues[indexDarkest] > threshold) {
-    switch(indexDarkest) {
+    switch (indexDarkest) {
       case 0:
-        spinLeft(255);
+        runMotors(0, 1);
         direction = "LLLL";
         break;
       case 1:
-        runMotors(100, 255);
+        runMotors(.3, 1);
         direction = "LLL";
         break;
       case 2:
-        runMotors(170, 255);
+        runMotors(.6, 1);
         direction = "LL";
         break;
       case 3:
-        runMotors(220, 255);
+        runMotors(.9, 1);
         direction = "L";
         break;
       case 4:
-        runMotors(255, 220);
+        runMotors(1, .9);
         direction = "R";
         break;
       case 5:
-        runMotors(255, 170);
+        runMotors(1, .6);
         direction = "RR";
         break;
       case 6:
-        runMotors(255, 100);
+        runMotors(1, .3);
         direction = "RRR";
         break;
       case 7:
-        spinRight(255);
+        runMotors(1, 0);
         direction = "RRRR";
         break;
       default:
@@ -123,15 +124,15 @@ void noCalibration() {
 void calibrateSensors() {
   stop();
 
-  int numSamples = 10;  
-  int arrayThreshold[8] = {0}; 
-  
+  int numSamples = 10;
+  int arrayThreshold[8] = { 0 };
+
   for (int j = 0; j < numSamples; j++) {
     qtr.read(sensorValues);
     for (int i = 0; i < 8; i++) {
-      arrayThreshold[i] += sensorValues[i];  
+      arrayThreshold[i] += sensorValues[i];
     }
-    delay(50); 
+    delay(50);
   }
 
   for (int i = 0; i < 8; i++) {
@@ -140,7 +141,7 @@ void calibrateSensors() {
 
   int indexWhitest = 0;
   for (int i = 1; i < 8; i++) {
-    if (arrayThreshold[i] < arrayThreshold[indexWhitest]) 
+    if (arrayThreshold[i] < arrayThreshold[indexWhitest])
       indexWhitest = i;
   }
 
@@ -151,23 +152,23 @@ void calibrateSensors() {
 
 void blinkLED() {
   for (int i = 0; i < 3; i++) {
-    digitalWrite(ledPin, HIGH);   
-    delay(500);                  
-    digitalWrite(ledPin, LOW);    
-    delay(500);                   
+    digitalWrite(ledPin, HIGH);
+    delay(500);
+    digitalWrite(ledPin, LOW);
+    delay(500);
   }
 }
 //======================================^^^CALIBRATIONS FUNCTIONS^^^======================================//
 
 //======================================vvvSENSOR FUNCTIONSvvv======================================//
-void displayReadings (int* sensorReadings) {
-  int val_8 = sensorReadings[0];  
-  int val_7 = sensorReadings[1];          
-  int val_6 = sensorReadings[2];    
-  int val_5 = sensorReadings[3];       
-  int val_4 = sensorReadings[4];         
-  int val_3 = sensorReadings[5];      
-  int val_2 = sensorReadings[6];       
+void displayReadings(int* sensorReadings) {
+  int val_8 = sensorReadings[0];
+  int val_7 = sensorReadings[1];
+  int val_6 = sensorReadings[2];
+  int val_5 = sensorReadings[3];
+  int val_4 = sensorReadings[4];
+  int val_3 = sensorReadings[5];
+  int val_2 = sensorReadings[6];
   int val_1 = sensorReadings[7];
 
   Serial.print("\t");
@@ -205,8 +206,8 @@ void displayReadings (int* sensorReadings) {
 
 //======================================vvvCUSTOM MOTOR FUNCTIONSvvv======================================//
 void runMotors(int left, int right) {
-  leftMotor.drive(left);
-  rightMotor.drive(right);
+  leftMotor.drive(BASE_PWM * left);
+  rightMotor.drive(BASE_PWM * right);
 }
 
 void stop() {
@@ -224,3 +225,43 @@ void spinLeft(int speed) {
   rightMotor.drive(speed);
 }
 //======================================^^^CUSTOM MOTOR FUNCTIONS^^^======================================//
+
+//======================================vvvEMOTE FUNCTIONSvvv======================================//
+void emoteOne() {
+  runMotors(255, 255);
+  delay(500);
+  stop();
+  delay(300);
+  spinLeft(255);
+  delay(225);
+  stop();
+  delay(300);
+
+  runMotors(255, 255);
+  delay(500);
+  stop();
+  delay(300);
+  spinLeft(255);
+  delay(225);
+  stop();
+  delay(300);
+
+  runMotors(255, 255);
+  delay(500);
+  stop();
+  delay(300);
+  spinLeft(255);
+  delay(225);
+  stop();
+  delay(300);
+
+  runMotors(255, 255);
+  delay(500);
+  stop();
+  delay(300);
+  spinLeft(255);
+  delay(225);
+  stop();
+  delay(300);
+}
+//======================================^^^EMOTE FUNCTIONS^^^======================================//
