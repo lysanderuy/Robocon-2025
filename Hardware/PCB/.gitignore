@@ -1,8 +1,0 @@
-/Mount/*
-!/Mount/*.SLDPRT
-
-/Mount Rack/*
-!/Mount Rack/*.SLDPRT
-
-/Wheel/*
-!/Wheel/*.SLDPRT

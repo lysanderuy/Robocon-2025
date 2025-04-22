@@ -1,6 +1,11 @@
 #include <QTRSensors.h>
 #include <SparkFun_TB6612.h>
 
+// // DIP Switch pin assignments
+// #define SW0 
+// #define SW1
+// #define SW2
+
 // QTR 8A pin assignments
 #define SENSOR8 A7
 #define SENSOR7 A6
@@ -19,6 +24,7 @@
 #define AIN1 8
 #define BIN1 9
 #define BIN2 10
+#define STBY 12
 
 // Sensor setup
 const int sensorCount = 8;
@@ -34,19 +40,19 @@ bool onWhite = false;
 static int sensorThreshold[sensorCount];
 
 // Motor setup
-Motor leftMotor = Motor(AIN2, AIN1, PWMA, 1, 255);
-Motor rightMotor = Motor(BIN1, BIN2, PWMB, 1, 255);
+Motor leftMotor = Motor(AIN1, AIN2, PWMA, 1, STBY);
+Motor rightMotor = Motor(BIN1, BIN2, PWMB, 1, STBY);
 
 // Speed Variables
 const float speedMultiplierL = 1;
 const float speedMultiplierR = 1;
-const int baseSpeed = 90; // Straight
-const int slightHSpeed = 95; // Slight High
-const int slightLSpeed = 76; // Slight Low
-const int moderateHSpeed = 95; // Moderate High
-const int moderateLSpeed = 65; // Moderate Low
-const int hardHSpeed = 115; // Hard High
-const int hardLSpeed = 0; // Hard Low
+const int baseSpeed = 80; // Straight
+const int slightHSpeed = 80; // Slight High
+const int slightLSpeed = 65; // Slight Low
+const int moderateHSpeed = 90; // Moderate High
+const int moderateLSpeed = 45; // Moderate Low
+const int hardHSpeed = 255; // Hard High
+const int hardLSpeed = -255; // Hard Low
 
 void setup() {
   Serial.begin(9600);
@@ -65,6 +71,7 @@ void setup() {
 
 void loop() {
   qtr.read(sensorValues);
+
   followLine1();
 
   // displayReadings(sensorValues, 'A');
@@ -73,6 +80,7 @@ void loop() {
 
 //======================================vvvLINE FOLLOWING FUNCTIONSvvv======================================//
 void followLine1() {
+  int position=0;
   int first, second, third, fourth, fifth, sixth, seventh, eighth;
 
   first = (sensorValues[0] > sensorThreshold[0]) ? 1 : 0;
@@ -98,9 +106,7 @@ void followLine1() {
       sensorReadings[i] = (sensorReadings[i] == 0) ? 1 : 0;
     }
   }
-
-  int position = 0;
-
+  
   for (int i = 0; i < sensorCount; i++) {
     position |= sensorReadings[i] << (7 - i);
   }
@@ -109,6 +115,8 @@ void followLine1() {
     //============ Straight Cases ============
     case 0b00111100:
     case 0b01111110:
+    case 0b11111111:
+    case 0b00000000:
       Straight();
       direction = "Straight";
       break;
@@ -126,16 +134,17 @@ void followLine1() {
     case 0b00111110:
     case 0b00001100:
     case 0b00001000:
-    case 0b00001110:
+    case 0b00011100:
       slightRight();
       direction = "Slight Right";
       break;
-    //========== Moderate Left Cases ==========
-    case 0b11110000:
+    //========== Moderate Left Cases ==========11110000
     case 0b11100000:
     case 0b11111000:
     case 0b00111000:
     case 0b01100000:
+    case 0b11111100:
+    case 0b11111110:
     case 0b00100000:
       moderateLeft();
       direction = "Moderate Left";
@@ -144,17 +153,17 @@ void followLine1() {
     case 0b00001111:
     case 0b00000111:
     case 0b00011111:
-    case 0b00011100:
+    case 0b00001110:
     case 0b00000110:
     case 0b00000100:
+    case 0b00111111:
+    case 0b01111111:
       moderateRight();
       direction = "Moderate Right";
       break;
     //============ Hard Left Cases ============
     case 0b11000000:
     case 0b10000000:
-    case 0b11111100:
-    case 0b11111110:
     case 0b01000000:
       hardLeft();
       direction = "Hard Left";
@@ -162,8 +171,6 @@ void followLine1() {
     //=========== Hard Right Cases ===========
     case 0b00000011:
     case 0b00000001:
-    case 0b00111111:
-    case 0b01111111:
     case 0b00000010:
       hardRight();
       direction = "Hard Right";
@@ -180,7 +187,7 @@ void noCalibration() {
   stop();
 
   for (int i=0 ; i<sensorCount ; i++) {
-    sensorThreshold[i] = 450;
+    sensorThreshold[i] = 140;
   }
 
   delay(500);

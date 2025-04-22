@@ -7,7 +7,7 @@ int ledState = LOW;
 int threshold = 0;
 int thresholdAllowance = 250;
 String direction = " ";
-int baseSpeed = 255;
+int BASE_PWM = 200;
 
 // QTR 8A pin assignments
 #define SENSOR8 A7
@@ -27,12 +27,11 @@ int baseSpeed = 255;
 #define AIN1 8
 #define BIN1 9
 #define BIN2 10
+#define STBY 12
 
 // Motor setup
-Motor leftMotor = Motor(AIN2, AIN1, PWMA, 1, );
-Motor rightMotor = Motor(BIN1, BIN2, PWMB, 1, 255);
-
-int BASE_PWM = 160;
+Motor leftMotor = Motor(AIN1, AIN2, PWMA, 1, STBY);
+Motor rightMotor = Motor(BIN1, BIN2, PWMB, 1, STBY);
 
 // Sensor setup
 const uint8_t sensorArray[8] = { SENSOR8, SENSOR7, SENSOR6, SENSOR5, SENSOR4, SENSOR3, SENSOR2, SENSOR1 };
@@ -77,27 +76,27 @@ void followLine1() {
         direction = "LLLL";
         break;
       case 1:
-        runMotors(.3, 1);
+        runMotors(.2, 1);
         direction = "LLL";
         break;
       case 2:
-        runMotors(.6, 1);
+        runMotors(.65, 1);
         direction = "LL";
         break;
       case 3:
-        runMotors(.9, 1);
+        runMotors(.88, 1);
         direction = "L";
         break;
       case 4:
-        runMotors(1, .9);
+        runMotors(1, .88);
         direction = "R";
         break;
       case 5:
-        runMotors(1, .6);
+        runMotors(1, .65);
         direction = "RR";
         break;
       case 6:
-        runMotors(1, .3);
+        runMotors(1, .2);
         direction = "RRR";
         break;
       case 7:
